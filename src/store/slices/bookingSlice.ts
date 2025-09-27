@@ -1,4 +1,3 @@
-
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Booking } from '../../types';
 import toast from 'react-hot-toast';
@@ -51,7 +50,7 @@ export const createBooking = createAsyncThunk(
     try {
       const response = await api.post('api/bookings', bookingData);
       toast.success('Booking created successfully');
-      navigate('/bookings/');
+      navigate('/bookings');
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to create booking';
@@ -66,7 +65,30 @@ export const fetchUserBookings = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get('api/bookings');
-      return response.data;
+      console.log('Fetch User Bookings Response:', response.data);
+      
+      // Handle different response structures
+      if (response.data.success && response.data.bookings) {
+        return {
+          success: true,
+          data: response.data.bookings
+        };
+      } else if (response.data.data) {
+        return {
+          success: true,
+          data: response.data.data
+        };
+      } else if (Array.isArray(response.data)) {
+        return {
+          success: true,
+          data: response.data
+        };
+      } else {
+        return {
+          success: true,
+          data: []
+        };
+      }
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to fetch bookings';
       toast.error(message);
@@ -79,7 +101,7 @@ export const fetchAllBookings = createAsyncThunk(
   'bookings/fetchAllBookings',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('api/bookings');
+      const response = await api.get('/api/bookings');
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to fetch all bookings';
@@ -212,14 +234,15 @@ const bookingSlice = createSlice({
         state.error = action.payload as string;
       })
       
-      // Fetch User Bookings
+      // Fetch User Bookings - MISSING CASES ADDED ✅
       .addCase(fetchUserBookings.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchUserBookings.fulfilled, (state, action) => {
         state.loading = false;
-        state.userBookings = action.payload.data;
+        console.log('Setting userBookings to:', action.payload.data);
+        state.userBookings = action.payload.data || [];
         state.error = null;
       })
       .addCase(fetchUserBookings.rejected, (state, action) => {
@@ -252,7 +275,7 @@ const bookingSlice = createSlice({
         state.error = action.payload as string;
       })
       
-      // Fetch Booking by ID
+      // Fetch Booking by ID - MISSING CASES ADDED ✅
       .addCase(fetchBookingById.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -325,10 +348,10 @@ export const {
   updateBookingPaymentStatus,
 } = bookingSlice.actions;
 
-// Selectors
+// Selectors with safe fallbacks
 export const selectBookings = (state: { bookings: BookingState }) => state.bookings;
-export const selectAllBookings = (state: { bookings: BookingState }) => state.bookings.bookings;
-export const selectUserBookings = (state: { bookings: BookingState }) => state.bookings.userBookings;
+export const selectAllBookings = (state: { bookings: BookingState }) => state.bookings.bookings || [];
+export const selectUserBookings = (state: { bookings: BookingState }) => state.bookings.userBookings || [];
 export const selectCurrentBooking = (state: { bookings: BookingState }) => state.bookings.currentBooking;
 export const selectBookingStats = (state: { bookings: BookingState }) => state.bookings.bookingStats;
 export const selectBookingLoading = (state: { bookings: BookingState }) => state.bookings.loading;
