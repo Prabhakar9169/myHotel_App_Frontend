@@ -47,9 +47,9 @@ const Home: React.FC = () => {
     'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80'
   ];
 
-  useEffect(() => {
-    dispatch(fetchRooms({ limit: 6 }));
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(fetchRooms({ limit: 6 }));
+  // }, [dispatch]);
 
   // Auto-rotate carousel
   useEffect(() => {
