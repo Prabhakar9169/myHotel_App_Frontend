@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -17,43 +17,48 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { useAppSelector } from '../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { selectUser } from '../store/slices/authSlice';
-import api from '../service/api';
+import {
+  fetchUserBookings,
+  cancelBooking,
+  selectUserBookings,
+  selectBookingLoading,
+  selectBookingError,
+  clearError
+} from '../store/slices/bookingSlice';
 import Loader from '../components/common/Loader';
 
 const BookingsPage: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  
+  // Redux selectors with safe fallbacks
   const user = useAppSelector(selectUser);
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const rawBookings = useAppSelector(selectUserBookings);
+  const bookings = Array.isArray(rawBookings) ? rawBookings : [];
+  const loading = useAppSelector(selectBookingLoading);
+  const error = useAppSelector(selectBookingError);
 
   useEffect(() => {
     if (!user) {
       navigate('/login');
       return;
     }
-    fetchBookings();
-  }, [user, navigate]);
+    
+    // Clear any previous errors
+    dispatch(clearError());
+    
+    // Fetch bookings from Redux store
+    dispatch(fetchUserBookings());
+  }, [user, navigate, dispatch]);
 
-  const fetchBookings = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/bookings');
-      
-      if (response.data.success) {
-        setBookings(response.data.bookings);
-      } else {
-        setError('Failed to fetch bookings');
-      }
-    } catch (error: any) {
-      console.error('Fetch bookings error:', error);
-      setError(error.response?.data?.message || 'Error fetching bookings');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Debug logging
+  useEffect(() => {
+    console.log('Bookings from Redux:', bookings);
+    console.log('Loading state:', loading);
+    console.log('Error state:', error);
+  }, [bookings, loading, error]);
 
   const handleCancelBooking = async (bookingId: string) => {
     if (!window.confirm('Are you sure you want to cancel this booking?')) {
@@ -61,17 +66,11 @@ const BookingsPage: React.FC = () => {
     }
 
     try {
-      const response = await api.patch(`/bookings/${bookingId}/cancel`);
-      
-      if (response.data.success) {
-        alert('Booking cancelled successfully');
-        fetchBookings(); // Refresh the list
-      } else {
-        alert('Failed to cancel booking');
-      }
+      await dispatch(cancelBooking(bookingId)).unwrap();
+      // No need to manually refresh - Redux store will update automatically
     } catch (error: any) {
       console.error('Cancel booking error:', error);
-      alert(error.response?.data?.message || 'Error cancelling booking');
+      // Toast notification is already handled in the thunk
     }
   };
 
@@ -99,7 +98,19 @@ const BookingsPage: React.FC = () => {
         }}
       >
         <Container>
-          <Alert severity="error" sx={{ mt: 4 }}>
+          <Alert 
+            severity="error" 
+            sx={{ mt: 4 }}
+            action={
+              <Button 
+                color="inherit" 
+                size="small" 
+                onClick={() => dispatch(fetchUserBookings())}
+              >
+                RETRY
+              </Button>
+            }
+          >
             {error}
           </Alert>
         </Container>
@@ -162,17 +173,6 @@ const BookingsPage: React.FC = () => {
                 }}
               >
                 <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
-                  {/* Room Image
-                  <CardMedia
-                    component="img"
-                    sx={{
-                      width: { xs: '100%', md: 300 },
-                      height: { xs: 200, md: 'auto' }
-                    }}
-                    image={booking.room?.images?.[0] || '/api/placeholder/300/200'}
-                    alt={booking.room?.title}
-                  />
-                   */}
                   <CardContent sx={{ flex: 1, p: 3 }}>
                     {/* Header */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -311,14 +311,6 @@ const BookingsPage: React.FC = () => {
                           Cancel Booking
                         </Button>
                       ) : null}
-                      
-                      {/* <Button
-                        variant="text"
-                        size="small"
-                        onClick={() => navigate(`/bookings/${booking._id}`)}
-                      >
-                        View Details
-                      </Button> */}
                     </Box>
                   </CardContent>
                 </Box>
