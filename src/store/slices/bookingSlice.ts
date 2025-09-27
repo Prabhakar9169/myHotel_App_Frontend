@@ -49,7 +49,7 @@ export const createBooking = createAsyncThunk(
     navigate: (path: string) => void;
   }, { rejectWithValue }) => {
     try {
-      const response = await api.post('/api/bookings', bookingData);
+      const response = await api.post('api/bookings', bookingData);
       toast.success('Booking created successfully');
       navigate('/bookings/');
       return response.data;
@@ -65,7 +65,7 @@ export const fetchUserBookings = createAsyncThunk(
   'bookings/fetchUserBookings',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/api/bookings');
+      const response = await api.get('api/bookings');
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to fetch bookings';
@@ -79,7 +79,7 @@ export const fetchAllBookings = createAsyncThunk(
   'bookings/fetchAllBookings',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/api/bookings');
+      const response = await api.get('api/bookings');
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to fetch all bookings';
@@ -93,7 +93,7 @@ export const fetchBookingById = createAsyncThunk(
   'bookings/fetchBookingById',
   async (bookingId: string, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/api/bookings/${bookingId}`);
+      const response = await api.get(`api/bookings/${bookingId}`);
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to fetch booking details';
@@ -110,7 +110,7 @@ export const updateBooking = createAsyncThunk(
     bookingData: Partial<Booking> 
   }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/api/bookings/${bookingId}`, bookingData);
+      const response = await api.put(`api/bookings/${bookingId}`, bookingData);
       toast.success('Booking updated successfully');
       return response.data;
     } catch (error: any) {
@@ -125,7 +125,7 @@ export const cancelBooking = createAsyncThunk(
   'bookings/cancelBooking',
   async (bookingId: string, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/api/bookings/${bookingId}`);
+      const response = await api.delete(`api/bookings/${bookingId}`);
       toast.success('Booking cancelled successfully');
       return response.data;
     } catch (error: any) {
