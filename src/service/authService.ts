@@ -4,7 +4,7 @@ import { AuthResponse, LoginData, RegisterData, User } from '../types';
 class AuthService {
   // Register user
   async register(userData: RegisterData): Promise<AuthResponse> {
-    const response = await api.post('/auth/register', userData);
+    const response = await api.post('api/auth/register', userData);
     if (response.data.success) {
       this.setAuthData(response.data.token, response.data.user);
     }
@@ -13,7 +13,7 @@ class AuthService {
 
   // Login user
   async login(loginData: LoginData): Promise<AuthResponse> {
-    const response = await api.post('/auth/login', loginData);
+    const response = await api.post('api/auth/login', loginData);
     if (response.data.success) {
       this.setAuthData(response.data.token, response.data.user);
     }
@@ -22,13 +22,13 @@ class AuthService {
 
   // Get user profile
   async getProfile(): Promise<User> {
-    const response = await api.get('/auth/profile');
+    const response = await api.get('api/auth/profile');
     return response.data;
   }
 
   // Update profile
   async updateProfile(userData: Partial<User>): Promise<User> {
-    const response = await api.put('/auth/profile', userData);
+    const response = await api.put('api/auth/profile', userData);
     if (response.data.success) {
       const updatedUser = response.data.user;
       localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -42,13 +42,13 @@ class AuthService {
     newPassword: string;
     confirmPassword: string;
   }): Promise<void> {
-    const response = await api.patch('/auth/change-password', passwordData);
+    const response = await api.patch('api/auth/change-password', passwordData);
     return response.data;
   }
 
   // Forgot password
   async forgotPassword(email: string): Promise<void> {
-    const response = await api.post('/auth/forgot-password', { email });
+    const response = await api.post('api/auth/forgot-password', { email });
     return response.data;
   }
 
@@ -57,7 +57,7 @@ class AuthService {
     password: string;
     confirmPassword: string;
   }): Promise<AuthResponse> {
-    const response = await api.patch(`/auth/reset-password/${token}`, passwordData);
+    const response = await api.patch(`api/auth/reset-password/${token}`, passwordData);
     if (response.data.success) {
       this.setAuthData(response.data.token, response.data.user);
     }
